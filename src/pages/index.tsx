@@ -1,13 +1,37 @@
-import type { NextPage } from "next";
 import Head from "next/head";
+import {
+  Box,
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
+  VisuallyHidden,
+} from "@chakra-ui/react";
+import { useSession } from "next-auth/react";
+import { GetServerSidePropsContext } from "next";
+import { unstable_getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]";
+import { HiGlobe, HiLockClosed, HiPhotograph, HiPlus } from "react-icons/hi";
 import { trpc } from "@/utils/trpc";
-import { Box, Heading } from "@chakra-ui/react";
 
-const Home: NextPage = () => {
-  const { data, isLoading } = trpc.useQuery([
-    "example.hello",
-    { text: "from tRPC" },
-  ]);
+const Home = () => {
+  const session = useSession();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { data: boards } = trpc.useQuery(["boards.getAll"]);
 
   return (
     <>
@@ -17,11 +41,87 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Box>
-        <Heading>{data?.greeting ?? "Loading"}</Heading>
+      <Box px="40">
+        <Flex justify="space-between">
+          <Heading size="md">All Boards</Heading>
+          <Button leftIcon={<HiPlus />} onClick={onOpen}>
+            Add
+          </Button>
+        </Flex>
+
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Create New Board</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Box as="form">
+                <FormControl isRequired>
+                  <FormLabel>Title</FormLabel>
+                  <Input placeholder="Add board title" />
+                </FormControl>
+
+                <Flex justify="space-between" gap="12" mt="4">
+                  <Button leftIcon={<HiPhotograph />} w="full">
+                    Cover
+                  </Button>
+                  <Menu isLazy>
+                    <MenuButton
+                      as={Button}
+                      leftIcon={<HiLockClosed />}
+                      w="full"
+                    >
+                      Private
+                    </MenuButton>
+
+                    <MenuList>
+                      <MenuItem icon={<HiLockClosed />}>Private</MenuItem>
+                      <MenuItem icon={<HiGlobe />}>Public</MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Flex>
+              </Box>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost">Cancel</Button>
+              <Button leftIcon={<HiPlus />}>Create</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <Flex gap="8">
+          {boards?.map((board, i) => (
+            <Box key={i}>X</Box>
+          ))}
+        </Flex>
       </Box>
     </>
   );
+};
+
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
+  const session = await unstable_getServerSession(
+    context.req,
+    context.res,
+    authOptions
+  );
+
+  if (!session?.user) {
+    return {
+      redirect: {
+        destination: "/api/auth/signin",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      session: session,
+    },
+  };
 };
 
 export default Home;
