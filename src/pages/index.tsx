@@ -3,8 +3,6 @@ import {
   Box,
   Button,
   Flex,
-  FormControl,
-  FormLabel,
   Heading,
   Input,
   Menu,
@@ -19,19 +17,17 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
-  VisuallyHidden,
 } from "@chakra-ui/react";
-import { useSession } from "next-auth/react";
 import { GetServerSidePropsContext } from "next";
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]";
-import { HiGlobe, HiLockClosed, HiPhotograph, HiPlus } from "react-icons/hi";
+import { HiPlus } from "react-icons/hi";
 import { trpc } from "@/utils/trpc";
+import CreateBoardModal from "@/components/Modals/CreateBoardModal";
 
 const Home = () => {
-  const session = useSession();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { data: boards } = trpc.useQuery(["boards.getAll"]);
+  const { data: boards, isLoading } = trpc.useQuery(["boards.getAll"]);
 
   return (
     <>
@@ -49,50 +45,12 @@ const Home = () => {
           </Button>
         </Flex>
 
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Create New Board</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box as="form">
-                <FormControl isRequired>
-                  <FormLabel>Title</FormLabel>
-                  <Input placeholder="Add board title" />
-                </FormControl>
-
-                <Flex justify="space-between" gap="12" mt="4">
-                  <Button leftIcon={<HiPhotograph />} w="full">
-                    Cover
-                  </Button>
-                  <Menu isLazy>
-                    <MenuButton
-                      as={Button}
-                      leftIcon={<HiLockClosed />}
-                      w="full"
-                    >
-                      Private
-                    </MenuButton>
-
-                    <MenuList>
-                      <MenuItem icon={<HiLockClosed />}>Private</MenuItem>
-                      <MenuItem icon={<HiGlobe />}>Public</MenuItem>
-                    </MenuList>
-                  </Menu>
-                </Flex>
-              </Box>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="ghost">Cancel</Button>
-              <Button leftIcon={<HiPlus />}>Create</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+        <CreateBoardModal isOpen={isOpen} onClose={onClose} />
 
         <Flex gap="8">
-          {boards?.map((board, i) => (
-            <Box key={i}>X</Box>
-          ))}
+          {isLoading
+            ? "Loading..."
+            : boards?.map(({ id, title }) => <Box key={id}>{title}</Box>)}
         </Flex>
       </Box>
     </>
