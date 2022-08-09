@@ -8,10 +8,14 @@ type Props = {
 const Layout = ({ children }: Props) => {
   return (
     <>
-      <Box as="header">
-        <Navbar />
+      <Box flexDirection="column" display="flex" bg="gray.100">
+        <Box as="header" h="5rem">
+          <Navbar />
+        </Box>
+        <Box as="main" minH="calc(100vh - 5rem)">
+          {children}
+        </Box>
       </Box>
-      <Box as="main">{children}</Box>
     </>
   );
 };
