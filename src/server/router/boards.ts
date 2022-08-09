@@ -2,6 +2,7 @@ import { createProtectedRouter } from "./protected-router";
 import { prisma } from "@/server/db/client";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { Prisma } from "@prisma/client";
 
 export const boardsRouter = createProtectedRouter()
   .query("getAll", {
@@ -13,11 +14,89 @@ export const boardsRouter = createProtectedRouter()
         });
       }
 
+      const userData = Prisma.validator<Prisma.UserSelect>()({
+        id: true,
+        name: true,
+        image: true,
+      });
+
       return await prisma.board.findMany({
         where: {
           creatorId: session.user.id,
         },
+        include: {
+          creator: {
+            select: userData,
+          },
+          members: {
+            select: {
+              isAdmin: true,
+              User: {
+                select: userData,
+              },
+            },
+          },
+        },
       });
+    },
+  })
+  .query("getOneById", {
+    input: z.object({
+      id: z.string(),
+    }),
+    async resolve({ ctx: { session }, input: { id } }) {
+      // check if its logged
+      if (!session.user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must be logged to see this board",
+        });
+      }
+
+      const userId = session.user.id;
+
+      // get the board
+      const board = await prisma.board.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          members: {
+            select: {
+              userId: true,
+            },
+          },
+          lists: {
+            include: {
+              cards: true,
+            },
+          },
+        },
+      });
+
+      // check if the board exits
+      if (!board) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "There is no any board with that ID",
+        });
+      }
+
+      // check if the user owner or member of the board
+      const isMember = board.members.find((member) => userId === member.userId);
+      const isCreator = board.creatorId === userId;
+
+      // In the case that the board is private
+      // Amd yje user is not a member or the owner, then returns an error
+      if (board.isPrivate && !isCreator && !isMember) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "You are not a member or the creator of this board, you can't have access to this board",
+        });
+      }
+
+      return board;
     },
   })
   .mutation("createOne", {
