@@ -24,10 +24,15 @@ import { authOptions } from "./api/auth/[...nextauth]";
 import { HiPlus } from "react-icons/hi";
 import { trpc } from "@/utils/trpc";
 import CreateBoardModal from "@/components/Modals/CreateBoardModal";
+import BoardList from "@/components/BoardList";
 
 const Home = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { data: boards, isLoading } = trpc.useQuery(["boards.getAll"]);
+  const {
+    data: boards,
+    isLoading,
+    isSuccess,
+  } = trpc.useQuery(["boards.getAll"]);
 
   return (
     <>
@@ -37,10 +42,10 @@ const Home = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Box px="40">
-        <Flex justify="space-between">
+      <Box px="40" pt="12">
+        <Flex justify="space-between" mb="8" align="center">
           <Heading size="md">All Boards</Heading>
-          <Button leftIcon={<HiPlus />} onClick={onOpen}>
+          <Button leftIcon={<HiPlus />} onClick={onOpen} colorScheme="blue">
             Add
           </Button>
         </Flex>
@@ -48,9 +53,8 @@ const Home = () => {
         <CreateBoardModal isOpen={isOpen} onClose={onClose} />
 
         <Flex gap="8">
-          {isLoading
-            ? "Loading..."
-            : boards?.map(({ id, title }) => <Box key={id}>{title}</Box>)}
+          {isLoading && "Loading..."}
+          {isSuccess && <BoardList boards={boards} w="full" />}
         </Flex>
       </Box>
     </>
