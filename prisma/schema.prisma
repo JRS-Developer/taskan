@@ -85,6 +85,7 @@ model Board {
     isPrivate   Boolean           @default(true)
     createdAt   DateTime          @default(now())
     updatedAt   DateTime          @updatedAt
+    lists       BoardList[]
     members     MembersOnBoards[]
     labels      Label[]
 
@@ -111,6 +112,8 @@ model BoardList {
     cards     Card[]
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    Board     Board?   @relation(fields: [boardId], references: [id])
+    boardId   String?
 
     @@map("boardlists")
 }
