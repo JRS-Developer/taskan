@@ -47,7 +47,7 @@ const CreateBoardModal = ({ isOpen, onClose }: Props) => {
 
   const utils = trpc.useContext();
   const { mutate, isLoading } = trpc.useMutation(["boards.createOne"], {
-    onSuccess(newBoard) {
+    onSuccess() {
       // Update queries
       utils.invalidateQueries(["boards.getAll"]);
       // Show success message
