@@ -2,7 +2,6 @@
 import { createRouter } from "./context";
 import superjson from "superjson";
 
-import { exampleRouter } from "./example";
 import { protectedExampleRouter } from "./protected-example-router";
 import { boardsRouter } from "./boards";
 import { columnsRouter } from "./columns";
