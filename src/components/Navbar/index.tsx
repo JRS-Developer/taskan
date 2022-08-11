@@ -29,7 +29,7 @@ const Navbar = () => {
     <Flex
       as="nav"
       py="4"
-      px="8"
+      px="var(--page-padding)"
       bg={navBg}
       shadow="base"
       align="center"
