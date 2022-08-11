@@ -6,7 +6,8 @@ import { createRouter } from "./context";
  */
 export function createProtectedRouter() {
   return createRouter().middleware(({ ctx, next }) => {
-    if (!ctx.session || !ctx.session.user) {
+    const userId = ctx.session?.user?.id;
+    if (!ctx.session || !userId) {
       throw new trpc.TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({
@@ -14,6 +15,7 @@ export function createProtectedRouter() {
         ...ctx,
         // infers that `session` is non-nullable to downstream resolvers
         session: { ...ctx.session, user: ctx.session.user },
+        userId: userId,
       },
     });
   });

@@ -6,14 +6,7 @@ import { Prisma } from "@prisma/client";
 
 export const boardsRouter = createProtectedRouter()
   .query("getAll", {
-    async resolve({ ctx: { session } }) {
-      if (!session.user.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "You must be logged to see your boards",
-        });
-      }
-
+    async resolve({ ctx: { userId } }) {
       const userData = Prisma.validator<Prisma.UserSelect>()({
         id: true,
         name: true,
@@ -22,7 +15,7 @@ export const boardsRouter = createProtectedRouter()
 
       return await prisma.board.findMany({
         where: {
-          creatorId: session.user.id,
+          creatorId: userId,
         },
         include: {
           creator: {
@@ -44,17 +37,7 @@ export const boardsRouter = createProtectedRouter()
     input: z.object({
       id: z.string(),
     }),
-    async resolve({ ctx: { session }, input: { id } }) {
-      // check if its logged
-      if (!session.user.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "You must be logged to see this board",
-        });
-      }
-
-      const userId = session.user.id;
-
+    async resolve({ ctx: { userId }, input: { id } }) {
       // get the board
       const board = await prisma.board.findUnique({
         where: {
@@ -106,20 +89,13 @@ export const boardsRouter = createProtectedRouter()
       description: z.string().optional(),
       isPrivate: z.boolean().default(true),
     }),
-    async resolve({ ctx: { session }, input }) {
-      if (!session.user.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "You must be logged to create a new board",
-        });
-      }
-
+    async resolve({ ctx: { userId }, input }) {
       const board = await prisma.board.create({
         data: {
           ...input,
           creator: {
             connect: {
-              id: session.user.id,
+              id: userId,
             },
           },
         },
