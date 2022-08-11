@@ -12,7 +12,7 @@ const Layout = ({ children }: Props) => {
         <Box as="header" h="5rem">
           <Navbar />
         </Box>
-        <Box as="main" minH="calc(100vh - 5rem)">
+        <Box as="main" minH="calc(100vh - var(--header-height))">
           {children}
         </Box>
       </Box>
