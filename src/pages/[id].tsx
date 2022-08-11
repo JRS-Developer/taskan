@@ -1,3 +1,4 @@
+import BoardColumns from "@/components/BoardColumns";
 import { trpc } from "@/utils/trpc";
 import { Box, Button, Flex, Menu, MenuButton } from "@chakra-ui/react";
 import { NextPage } from "next";
@@ -10,10 +11,10 @@ type Props = {
 
 const BoardPage: NextPage<Props> = ({ router }) => {
   const { query } = router;
-
   const boardId = query?.id as string;
 
-  const { data, isLoading } = trpc.useQuery(
+  // getting the board data
+  const { data, isLoading, isSuccess } = trpc.useQuery(
     [
       "boards.getOneById",
       {
@@ -25,10 +26,8 @@ const BoardPage: NextPage<Props> = ({ router }) => {
     }
   );
 
-  console.log(data);
-
   return (
-    <Box bg="gray.50">
+    <Box bg="gray.50" px="var(--page-padding)">
       <Flex align="center" justify="space-between">
         <Flex align="center">
           <Menu>
@@ -46,7 +45,7 @@ const BoardPage: NextPage<Props> = ({ router }) => {
         </Menu>
       </Flex>
 
-      <Box bg="gray.100" rounded="lg"></Box>
+      {isSuccess && <BoardColumns boardId={boardId} columns={data.lists} />}
     </Box>
   );
 };
