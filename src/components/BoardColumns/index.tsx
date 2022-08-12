@@ -1,4 +1,5 @@
-import { inferQueryOutput, trpc } from "@/utils/trpc";
+import { BoardColumnByIdT } from "@/types/trpc-queries";
+import { trpc } from "@/utils/trpc";
 import {
   Flex,
   HStack,
@@ -8,29 +9,20 @@ import {
   useToast,
   useBoolean,
 } from "@chakra-ui/react";
-import { FormEvent, useCallback, useRef } from "react";
 import { HiPlus } from "react-icons/hi";
 import BoardColumnForm from "./BoardColumnForm";
 import BoardColumnItem from "./BoardColumnItem";
 
 type Props = {
   boardId: string;
-  columns: inferQueryOutput<"boards.getOneById">["lists"];
+  columns: BoardColumnByIdT[];
 };
 
 const BoardColumns = ({ boardId, columns }: Props) => {
   const [isCreating, setIsCreating] = useBoolean(false);
   const toast = useToast();
 
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  // this callback makes possible that the input gets focus when it's rendered
-  const callbackRef = useCallback((inputElement: HTMLInputElement | null) => {
-    if (inputElement) {
-      inputElement.focus();
-      inputRef.current = inputElement;
-    }
-  }, []);
+  const utils = trpc.useContext();
 
   // mutation to create a new Board Column
   const { mutate, isLoading } = trpc.useMutation(["columns.createOne"], {
@@ -49,31 +41,18 @@ const BoardColumns = ({ boardId, columns }: Props) => {
     },
   });
 
-  const utils = trpc.useContext();
-
-  const handleCreateColumn = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!inputRef.current) return;
-
-    const name = inputRef.current.value;
-
-    // if the name is empty, then, don't create anything
-    if (name === "") return;
-
+  function handleCreateColumn({ name }: { name: string }) {
     mutate({
       name,
       boardId: boardId,
     });
-  };
+  }
 
   return (
-    <Flex bg="gray.100" rounded="3xl" mt="7" pt="7" px="6">
+    <Flex bg="gray.100" rounded="3xl" mt="7" p="6">
       <HStack spacing="8" align="flex-start">
         {columns.map((column) => (
-          <>
-            <BoardColumnItem key={column.id} column={column} />
-          </>
+          <BoardColumnItem key={column.id} column={column} />
         ))}
         <Box w="244px">
           <Collapse in={isCreating} unmountOnExit>
@@ -82,8 +61,7 @@ const BoardColumns = ({ boardId, columns }: Props) => {
                 isLoading={isLoading}
                 label="Add New Column"
                 addButtonText="Add Column"
-                handleSubmit={handleCreateColumn}
-                inputRef={callbackRef}
+                onSubmit={handleCreateColumn}
                 inputPlaceholder="Insert column name..."
                 onCancel={setIsCreating.off}
               />

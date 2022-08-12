@@ -1,54 +1,80 @@
-import { inferQueryOutput } from "@/utils/trpc";
-import {
-  Flex,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
-  Button,
-  Box,
-  Text,
-  useBoolean,
-  Collapse,
-} from "@chakra-ui/react";
-import { FormEvent } from "react";
-import { HiDotsHorizontal, HiPlus, HiTrash } from "react-icons/hi";
+import { type BoardColumnByIdT } from "@/types/trpc-queries";
+import { trpc } from "@/utils/trpc";
+import { Flex, Button, useBoolean, Collapse, useToast } from "@chakra-ui/react";
+import { HiPlus } from "react-icons/hi";
+import ColumnCards from "../ColumnCards";
 import BoardColumnForm from "./BoardColumnForm";
+import BoardColumnHeader from "./BoardColumnHeader";
 
 type Props = {
-  column: inferQueryOutput<"boards.getOneById">["lists"][0];
+  column: BoardColumnByIdT;
 };
 
-const BoardColumnItem = ({ column: { id, name, cards } }: Props) => {
+const BoardColumnItem = ({ column: { id, name, cards, boardId } }: Props) => {
   const [isCreating, setIsCreating] = useBoolean(false);
 
-  const handleCreateCard = (e: FormEvent<HTMLFormElement>) => {};
+  const toast = useToast();
+  const utils = trpc.useContext();
+
+  // this is to invalidate board data and refetch again
+  const invalidateQuery = () => {
+    if (boardId) {
+      utils.invalidateQueries(["boards.getOneById", { id: boardId }]);
+    }
+  };
+
+  const createCard = trpc.useMutation(["cards.createOne"], {
+    onSuccess: () => {
+      // refetch board
+      invalidateQuery();
+      // show success message
+      toast({
+        status: "success",
+        title: "Card created successfully",
+      });
+    },
+  });
+
+  const deleteColumn = trpc.useMutation(["columns.deleteById"], {
+    onSuccess: () => {
+      toast({
+        status: "success",
+        title: "Column deleted successfully",
+      });
+    },
+    onSettled: () => invalidateQuery(),
+  });
+
+  const handleCreateCard = ({ name }: { name: string }) => {
+    createCard.mutate({
+      name,
+      columnId: id,
+    });
+
+    setIsCreating.off();
+  };
+
+  const handleDeleteColumn = () =>
+    deleteColumn.mutate({
+      id,
+    });
 
   return (
     <Flex direction="column" w="244px" gap="6">
-      <Flex align="center" justify="space-between">
-        <Text>{name}</Text>
-        <Menu>
-          <MenuButton
-            as={IconButton}
-            aria-label="Open column options"
-            icon={<HiDotsHorizontal />}
-          />
-          <MenuList>
-            <MenuItem icon={<HiTrash />}>Delete</MenuItem>
-          </MenuList>
-        </Menu>
-      </Flex>
-      {cards.map((card) => (
-        <Box key={card.id}>{card.name}</Box>
-      ))}
+      <BoardColumnHeader
+        name={name}
+        handleDelete={handleDeleteColumn}
+        isLoading={deleteColumn.isLoading}
+      />
+
+      <ColumnCards cards={cards} />
+
       <Collapse in={isCreating} animateOpacity unmountOnExit>
         {isCreating && (
           <BoardColumnForm
             addButtonText="Add card"
-            isLoading={false}
-            handleSubmit={handleCreateCard}
+            isLoading={createCard.isLoading}
+            onSubmit={handleCreateCard}
             label="Add New Card"
             onCancel={setIsCreating.off}
             inputPlaceholder="Insert card name..."
