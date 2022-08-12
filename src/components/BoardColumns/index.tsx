@@ -1,3 +1,4 @@
+import useInvalidateBoardQuery from "@/hooks/invalidators/useInvalidateBoardQuery";
 import { BoardColumnByIdT } from "@/types/trpc-queries";
 import { trpc } from "@/utils/trpc";
 import {
@@ -22,13 +23,13 @@ const BoardColumns = ({ boardId, columns }: Props) => {
   const [isCreating, setIsCreating] = useBoolean(false);
   const toast = useToast();
 
-  const utils = trpc.useContext();
+  const { invalidate } = useInvalidateBoardQuery({ boardId });
 
   // mutation to create a new Board Column
   const { mutate, isLoading } = trpc.useMutation(["columns.createOne"], {
     onSuccess: () => {
       // refetch board
-      utils.invalidateQueries(["boards.getOneById", { id: boardId }]);
+      invalidate();
 
       // show success message
       toast({
