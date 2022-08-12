@@ -110,11 +110,13 @@ model BoardList {
     id        String   @id @default(uuid())
     name      String
     cards     Card[]
+    position  Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     Board     Board?   @relation(fields: [boardId], references: [id])
     boardId   String?
 
+    @@unique([boardId, position])
     @@map("boardlists")
 }
 
@@ -136,6 +138,7 @@ model Card {
     name        String
     cover       String?
     description String?
+    position    Int
     attachments Attachment[]
     labels      LabelsOnCards[]
     boardList   BoardList       @relation(fields: [boardListId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -143,6 +146,7 @@ model Card {
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @updatedAt
 
+    @@unique([boardListId, position])
     @@map("cards")
 }
 
