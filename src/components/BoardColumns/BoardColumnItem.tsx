@@ -1,6 +1,7 @@
+import useInvalidateBoardQuery from "@/hooks/invalidators/useInvalidateBoardQuery";
 import { type BoardColumnByIdT } from "@/types/trpc-queries";
 import { trpc } from "@/utils/trpc";
-import { Flex, Button, useBoolean, Collapse, useToast } from "@chakra-ui/react";
+import { Flex, Button, useBoolean, Collapse } from "@chakra-ui/react";
 import { HiPlus } from "react-icons/hi";
 import ColumnCards from "../ColumnCards";
 import BoardColumnForm from "./BoardColumnForm";
@@ -13,36 +14,15 @@ type Props = {
 const BoardColumnItem = ({ column: { id, name, cards, boardId } }: Props) => {
   const [isCreating, setIsCreating] = useBoolean(false);
 
-  const toast = useToast();
-  const utils = trpc.useContext();
+  const { invalidate } = useInvalidateBoardQuery({ boardId });
 
   // this is to invalidate board data and refetch again
-  const invalidateQuery = () => {
-    if (boardId) {
-      utils.invalidateQueries(["boards.getOneById", { id: boardId }]);
-    }
-  };
-
   const createCard = trpc.useMutation(["cards.createOne"], {
-    onSuccess: () => {
-      // refetch board
-      invalidateQuery();
-      // show success message
-      toast({
-        status: "success",
-        title: "Card created successfully",
-      });
-    },
+    onSettled: () => invalidate(),
   });
 
   const deleteColumn = trpc.useMutation(["columns.deleteById"], {
-    onSuccess: () => {
-      toast({
-        status: "success",
-        title: "Column deleted successfully",
-      });
-    },
-    onSettled: () => invalidateQuery(),
+    onSettled: () => invalidate(),
   });
 
   const handleCreateCard = ({ name }: { name: string }) => {
@@ -62,7 +42,9 @@ const BoardColumnItem = ({ column: { id, name, cards, boardId } }: Props) => {
   return (
     <Flex direction="column" w="244px" gap="6">
       <BoardColumnHeader
+        id={id}
         name={name}
+        boardId={boardId}
         handleDelete={handleDeleteColumn}
         isLoading={deleteColumn.isLoading}
       />
