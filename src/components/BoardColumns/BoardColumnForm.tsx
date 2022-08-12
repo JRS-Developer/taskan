@@ -10,7 +10,7 @@ import {
   FormErrorMessage,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormEvent, LegacyRef, useEffect } from "react";
+import { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import { z } from "zod";
@@ -58,7 +58,7 @@ const BoardColumnForm = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Box border="1px" shadow="md" rounded="md" p="2">
+      <Box shadow="md" rounded="md" p="3" bg="white">
         <FormControl isInvalid={Boolean(errors.name)}>
           <VisuallyHidden>
             <FormLabel htmlFor="name">{label}</FormLabel>
