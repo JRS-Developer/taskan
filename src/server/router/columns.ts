@@ -2,6 +2,7 @@ import { createProtectedRouter } from "./protected-router";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@/server/db/client";
+import getLastPosition from "@/utils/getLastPosition";
 
 export const columnsRouter = createProtectedRouter()
   .mutation("createOne", {
@@ -15,6 +16,9 @@ export const columnsRouter = createProtectedRouter()
         where: {
           id: input.boardId,
         },
+        include: {
+          lists: true,
+        },
       });
 
       if (!board) {
@@ -24,12 +28,34 @@ export const columnsRouter = createProtectedRouter()
         });
       }
 
+      // get last position of the columns
+      const lastPosition = getLastPosition(board.lists);
       // create column
       const column = await prisma.boardList.create({
-        data: input,
+        data: {
+          ...input,
+          position: lastPosition + 1,
+        },
       });
 
       return column;
+    },
+  })
+  .mutation("updateOne", {
+    input: z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).optional(),
+      position: z.number().optional(),
+    }),
+    async resolve({ input: { id, ...input } }) {
+      const updatedColumn = await prisma.boardList.update({
+        where: {
+          id,
+        },
+        data: input,
+      });
+
+      return updatedColumn;
     },
   })
   .mutation("deleteById", {
