@@ -50,8 +50,14 @@ export const boardsRouter = createProtectedRouter()
             },
           },
           lists: {
+            orderBy: {
+              position: "asc",
+            },
             include: {
               cards: {
+                orderBy: {
+                  position: "asc",
+                },
                 include: {
                   labels: {
                     include: {
