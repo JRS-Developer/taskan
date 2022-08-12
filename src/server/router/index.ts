@@ -5,11 +5,13 @@ import superjson from "superjson";
 import { protectedExampleRouter } from "./protected-example-router";
 import { boardsRouter } from "./boards";
 import { columnsRouter } from "./columns";
+import { cardsRouter } from "./cards";
 
 export const appRouter = createRouter()
   .transformer(superjson)
   .merge("boards.", boardsRouter)
   .merge("columns.", columnsRouter)
+  .merge("cards.", cardsRouter)
   .merge("question.", protectedExampleRouter);
 
 // export type definition of API
