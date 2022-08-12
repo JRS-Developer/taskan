@@ -51,7 +51,15 @@ export const boardsRouter = createProtectedRouter()
           },
           lists: {
             include: {
-              cards: true,
+              cards: {
+                include: {
+                  labels: {
+                    include: {
+                      Label: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
