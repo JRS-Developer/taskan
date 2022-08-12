@@ -7,8 +7,6 @@ import {
   MenuItem,
   IconButton,
   Button,
-  Text,
-  useBoolean,
   useDisclosure,
   AlertDialog,
   AlertDialogOverlay,
@@ -17,18 +15,19 @@ import {
   AlertDialogHeader,
   AlertDialogFooter,
   AlertDialogCloseButton,
-  MenuDivider,
   Editable,
   EditablePreview,
-  Input,
   EditableInput,
-  useEditableControls,
 } from "@chakra-ui/react";
 import { HiDotsHorizontal } from "react-icons/hi";
-import { type MutableRefObject, useRef } from "react";
+import { type MutableRefObject, useRef, useState } from "react";
+import { trpc } from "@/utils/trpc";
+import useInvalidateBoardQuery from "@/hooks/invalidators/useInvalidateBoardQuery";
 
 type Props = {
+  id: BoardColumnByIdT["id"];
   name: BoardColumnByIdT["name"];
+  boardId: BoardColumnByIdT["boardId"];
   handleDelete: () => void;
   isLoading: boolean;
 };
@@ -89,8 +88,22 @@ const DeleteColumnAlertDialog = ({
   );
 };
 
-const BoardColumnHeader = ({ name, handleDelete, isLoading }: Props) => {
+const BoardColumnHeader = ({
+  id,
+  name,
+  boardId,
+  handleDelete,
+  isLoading,
+}: Props) => {
   const { isOpen, onClose, onOpen } = useDisclosure();
+  const [previewName, setPreviewName] = useState(name);
+
+  const { invalidate } = useInvalidateBoardQuery({ boardId });
+
+  const updateColumn = trpc.useMutation(["columns.updateOne"], {
+    onError: () => setPreviewName(name),
+    onSettled: () => invalidate(),
+  });
 
   const cancelRef = useRef(null);
 
@@ -98,16 +111,25 @@ const BoardColumnHeader = ({ name, handleDelete, isLoading }: Props) => {
     // if the name didn't change. then don't do anything
     if (newName === name) return;
 
-    // save changes
-    // TODO: SAVE DATA
+    // if it's empty, avoid making changes, and reset
+    if (previewName.length === 0) return setPreviewName(name);
 
-    console.log("save");
+    // save changes
+    updateColumn.mutate({
+      id,
+      name: newName,
+    });
   };
 
   return (
     <>
       <Flex align="center" justify="space-between">
-        <Editable defaultValue={name} onSubmit={handleSubmit}>
+        <Editable
+          value={previewName}
+          onChange={(newName) => setPreviewName(newName)}
+          onSubmit={handleSubmit}
+          isDisabled={updateColumn.isLoading}
+        >
           <EditablePreview />
           <EditableInput />
         </Editable>
