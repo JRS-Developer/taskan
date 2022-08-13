@@ -1,4 +1,5 @@
 import BoardColumns from "@/components/BoardColumns";
+import CardInfoModal from "@/components/Modals/CardInfoModal";
 import { trpc } from "@/utils/trpc";
 import { Box, Button, Flex, Menu, MenuButton } from "@chakra-ui/react";
 import { NextPage } from "next";
@@ -46,6 +47,8 @@ const BoardPage: NextPage<Props> = ({ router }) => {
       </Flex>
 
       {isSuccess && <BoardColumns boardId={boardId} columns={data.lists} />}
+
+      <CardInfoModal />
     </Box>
   );
 };
