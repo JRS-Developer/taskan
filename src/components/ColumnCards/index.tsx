@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { BoardCardByIdT } from "@/types/trpc-queries";
 import ColumnCardItem from "./ColumnCardItem";
 
@@ -15,4 +16,4 @@ const ColumnCards = ({ cards }: Props) => {
   );
 };
 
-export default ColumnCards;
+export default memo(ColumnCards);

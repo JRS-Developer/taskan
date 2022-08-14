@@ -10,6 +10,7 @@ import {
   useToast,
   useBoolean,
 } from "@chakra-ui/react";
+import { memo } from "react";
 import { HiPlus } from "react-icons/hi";
 import BoardColumnForm from "./BoardColumnForm";
 import BoardColumnItem from "./BoardColumnItem";
@@ -85,4 +86,4 @@ const BoardColumns = ({ boardId, columns }: Props) => {
   );
 };
 
-export default BoardColumns;
+export default memo(BoardColumns);
