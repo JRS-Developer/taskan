@@ -3,6 +3,17 @@ import { z } from "zod";
 import { prisma } from "@/server/db/client";
 import { TRPCError } from "@trpc/server";
 import getLastPosition from "@/utils/getLastPosition";
+import { Prisma } from "@prisma/client";
+
+const CardInclude = Prisma.validator<Prisma.CardInclude>()({
+  boardList: true,
+});
+
+const showCardNotFound = () =>
+  new TRPCError({
+    message: "The card doesn't exist",
+    code: "NOT_FOUND",
+  });
 
 export const cardsRouter = createProtectedRouter()
   .query("getOneById", {
@@ -14,17 +25,11 @@ export const cardsRouter = createProtectedRouter()
         where: {
           id: input.id,
         },
-        include: {
-          boardList: true,
-        },
+        include: CardInclude,
       });
 
       // returns error if the card doesn't exit
-      if (!card)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "The card doesn't exit",
-        });
+      if (!card) throw showCardNotFound();
 
       return card;
     },
@@ -63,5 +68,34 @@ export const cardsRouter = createProtectedRouter()
       });
 
       return card;
+    },
+  })
+  .mutation("updateOne", {
+    input: z.object({
+      id: z.string().uuid(),
+      name: z.string().optional(),
+      cover: z.string().url().optional(),
+      description: z.string().optional(),
+    }),
+    async resolve({ input: { id, ...input } }) {
+      const card = await prisma.card.findUnique({
+        where: {
+          id: id,
+        },
+      });
+
+      // check that the card exist
+      if (!card) throw showCardNotFound();
+
+      // update card
+      const updatedCard = await prisma.card.update({
+        where: {
+          id: id,
+        },
+        data: input,
+        include: CardInclude,
+      });
+
+      return updatedCard;
     },
   });
