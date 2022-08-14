@@ -15,6 +15,7 @@ export const serverSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_KEY: z.string(),
   SUPABASE_BUCKET: z.string(),
+  UNSPLASH_ACCESS_KEY: z.string(),
 });
 
 /**
