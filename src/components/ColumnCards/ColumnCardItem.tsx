@@ -29,7 +29,13 @@ const ColumnCardItem = ({ card: { id, cover, name, labels } }: Props) => {
       }}
     >
       {cover && (
-        <Flex position="relative" h="130px" w="220px">
+        <Flex
+          position="relative"
+          h="130px"
+          w="220px"
+          rounded="xl"
+          overflow="hidden"
+        >
           <Image src={cover} alt={name} layout="fill" objectFit="cover" />
         </Flex>
       )}
