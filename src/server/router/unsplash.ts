@@ -10,9 +10,23 @@ const u = createApi({
 
 export const unsplashRouter = createProtectedRouter()
   .query("searchPhotos", {
-    input: z.object({ query: z.string().default("") }),
+    input: z
+      .object({
+        query: z.string().default(""),
+        page: z.number().optional(),
+        perPage: z.number().optional(),
+        orientation: z
+          .enum(["portrait", "landscape", "squarish"])
+          .default("landscape"),
+      })
+      .optional(),
     async resolve({ input }) {
-      const photos = await u.search.getPhotos(input);
+      if (!input?.query) return [];
+
+      const photos = await u.search.getPhotos({
+        ...input,
+        query: input?.query,
+      });
 
       if (photos.type === "error") {
         console.error(photos.errors);
@@ -25,10 +39,15 @@ export const unsplashRouter = createProtectedRouter()
     },
   })
   .query("getPhotos", {
-    async resolve() {
-      const photos = await u.photos.list({
-        page: 1,
-      });
+    input: z
+      .object({
+        page: z.number(),
+        perPage: z.number(),
+      })
+      .partial()
+      .optional(),
+    async resolve({ input }) {
+      const photos = await u.photos.list(input);
 
       if (photos.type === "error") {
         console.error(photos.errors);
