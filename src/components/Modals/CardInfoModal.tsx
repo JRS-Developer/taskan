@@ -14,60 +14,62 @@ import {
   Icon,
   Button,
 } from "@chakra-ui/react";
-import axios from "axios";
 import Image from "next/image";
-import { ChangeEvent } from "react";
 import { HiPhotograph, HiTag, HiUserCircle } from "react-icons/hi";
-import { useMutation } from "react-query";
 import UnsplashPopover from "../Popover/UnsplashPopover";
 
 interface CardModalBodyProps {
   card: CardByIdT;
 }
 
-const CardModalBody = ({ card }: CardModalBodyProps) => {
+const CardActions = ({ card }: { card: CardByIdT }) => {
   const utils = trpc.useContext();
 
-  const uploadImageMutation = useMutation(
-    ["upload-image"],
-    async (formD: FormData) => {
-      const { data } = await axios.post<{ url: string }>(
-        "/api/upload-image",
-        formD
-      );
-      return data;
-    }
-  );
-
-  const updateCard = trpc.useMutation(["cards.updateOne"], {
+  const updateCardCover = trpc.useMutation(["cards.updateOne"], {
     onSuccess: (data) => {
       utils.setQueryData(["cards.getOneById", { id: card.id }], data);
     },
   });
 
-  const handleCoverChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e?.target?.files;
-    const image = files?.length ? files[0] : null;
-    if (!image) return;
-
-    const formD = new FormData();
-    formD.append("image", image);
-
-    // updload image, and get public url to be saved in database
-    uploadImageMutation.mutate(formD, {
-      onSuccess: (data) => {
-        // save coverUrl in database
-        updateCard.mutate({
-          id: card.id,
-          cover: data.url,
-        });
-      },
+  const changeCover = (url: string) => {
+    updateCardCover.mutate({
+      id: card.id,
+      cover: url,
     });
-
-    // reset input
-    e.target.value = "";
   };
 
+  return (
+    <Box flex="1">
+      <Flex direction="column" gap="3">
+        <Flex align="center" gap="1">
+          <Icon as={HiUserCircle} boxSize="3" color="gray.500" />
+          <Text as="span" color="gray.500" fontSize="xs">
+            Actions
+          </Text>
+        </Flex>
+
+        <UnsplashPopover
+          popoverProps={{
+            isLazy: true,
+            placement: "bottom-start",
+          }}
+          triggerProps={{
+            leftIcon: <HiPhotograph />,
+            color: "gray.500",
+            children: "Cover",
+          }}
+          onClickImage={changeCover}
+          isLoading={updateCardCover.isLoading}
+        />
+        <Button leftIcon={<HiTag />} color="gray.500">
+          Labels
+        </Button>
+      </Flex>
+    </Box>
+  );
+};
+
+const CardModalBody = ({ card }: CardModalBodyProps) => {
   return (
     <Flex direction="column">
       {card?.cover && (
@@ -82,7 +84,7 @@ const CardModalBody = ({ card }: CardModalBodyProps) => {
             src={card.cover}
             layout="fill"
             alt={card.name}
-            objectFit="cover"
+            objectFit="fill"
           />
         </Box>
       )}
@@ -107,48 +109,7 @@ const CardModalBody = ({ card }: CardModalBodyProps) => {
           </Box>
         </Box>
 
-        <Box flex="1">
-          <Flex direction="column" gap="3">
-            <Flex align="center" gap="1">
-              <Icon as={HiUserCircle} boxSize="3" color="gray.500" />
-              <Text as="span" color="gray.500" fontSize="xs">
-                Actions
-              </Text>
-            </Flex>
-
-            <UnsplashPopover
-              popoverProps={{
-                isLazy: true,
-                placement: "bottom-start",
-              }}
-              triggerProps={{
-                leftIcon: <HiPhotograph />,
-                color: "gray.500",
-                children: "Cover",
-              }}
-            />
-            {/* <Button
-              leftIcon={<HiPhotograph />}
-              color="gray.500"
-              as="label"
-              _hover={{
-                cursor: "pointer",
-              }}
-              isLoading={updateCard.isLoading}
-            >
-              Cover
-              <input
-                accept="image/*"
-                type="file"
-                hidden
-                onChange={handleCoverChange}
-              />
-            </Button> */}
-            <Button leftIcon={<HiTag />} color="gray.500">
-              Labels
-            </Button>
-          </Flex>
-        </Box>
+        <CardActions card={card} />
       </Flex>
     </Flex>
   );

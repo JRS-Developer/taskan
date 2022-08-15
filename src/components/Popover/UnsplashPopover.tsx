@@ -1,41 +1,146 @@
 import { trpc } from "@/utils/trpc";
 import {
+  Box,
   Button,
   ButtonProps,
+  Flex,
+  Grid,
+  GridItem,
+  Icon,
   Input,
   Popover,
+  PopoverBody,
   PopoverContent,
   PopoverHeader,
   PopoverProps,
   PopoverTrigger,
+  Skeleton,
+  Spinner,
   Text,
 } from "@chakra-ui/react";
-import { useState, type SyntheticEvent } from "react";
+import Image from "next/image";
+import { useMemo, useState, type SyntheticEvent } from "react";
+import { HiPlus } from "react-icons/hi";
+
+type OnClickImage = (url: string) => void;
 
 interface Props {
   triggerProps?: ButtonProps;
   popoverProps?: PopoverProps;
+  onClickImage: OnClickImage;
+  isLoading: boolean;
 }
 
-const UnsplashPopover = ({ triggerProps, popoverProps }: Props) => {
-  const [query, setQuery] = useState("");
+interface UnsplashImageProps {
+  alt: string;
+  smallUrl: string;
+  bigUrl: string;
+  onClickImage: OnClickImage;
+}
 
-  const getPhotos = trpc.useQuery(["unsplash.getPhotos"], {
-    refetchOnWindowFocus: false,
-  });
+const UnsplashImage = ({
+  smallUrl,
+  bigUrl,
+  alt,
+  onClickImage,
+}: UnsplashImageProps) => {
+  return (
+    <Box
+      position="relative"
+      w="50px"
+      h="50px"
+      overflow="hidden"
+      rounded="base"
+      onClick={() => onClickImage(bigUrl)}
+      _active={{
+        opacity: "90%",
+      }}
+      _hover={{
+        cursor: "pointer",
+        "&>div": {
+          opacity: "100%",
+        },
+      }}
+    >
+      <Image src={smallUrl} alt={alt} layout="fill" objectFit="cover" />
+      <Flex
+        justify="center"
+        align="center"
+        opacity="0"
+        position="absolute"
+        w="full"
+        h="full"
+        left={0}
+        top={0}
+        backgroundColor="blackAlpha.800"
+        transition="opacity 0.2s"
+        color="white"
+      >
+        <Icon as={HiPlus} color="white" />
+      </Flex>
+    </Box>
+  );
+};
+
+const LoadingOverlay = () => (
+  <Box
+    bg="blackAlpha.700"
+    h="100%"
+    w="100%"
+    display="flex"
+    justifyContent="center"
+    alignItems="center"
+    position="absolute"
+    top="0"
+    left="0"
+    color="white"
+  >
+    <Spinner size="xl" />
+  </Box>
+);
+
+const UnsplashPopover = ({
+  triggerProps,
+  popoverProps,
+  onClickImage,
+  isLoading,
+}: Props) => {
+  const [query, setQuery] = useState("");
+  const perPage = 12;
+  const emptyArray = useMemo(
+    () => new Array(perPage).fill(undefined),
+    [perPage]
+  );
+
+  const getPhotos = trpc.useQuery(
+    [
+      "unsplash.getPhotos",
+      {
+        perPage,
+      },
+    ],
+    {
+      refetchOnWindowFocus: false,
+      cacheTime: Infinity,
+    }
+  );
 
   const searchPhotos = trpc.useQuery(
     [
       "unsplash.searchPhotos",
       {
-        query: query,
+        query,
+        perPage,
       },
     ],
     {
       enabled: query !== "",
       refetchOnWindowFocus: false,
+      cacheTime: Infinity,
     }
   );
+
+  const isLoadingImages = searchPhotos.isLoading || getPhotos.isLoading;
 
   const handleQuery = (e: SyntheticEvent) => {
     e.preventDefault();
@@ -43,16 +148,10 @@ const UnsplashPopover = ({ triggerProps, popoverProps }: Props) => {
       search: { value: string };
     };
     const newQuery = target.search.value;
-    console.log(newQuery);
-
-    if (!newQuery) return;
 
     // set query and that will execute the searchPhotos query
     setQuery(newQuery);
   };
-
-  console.log("getPhotos: ", getPhotos.data);
-  console.log("searchPhotos: ", searchPhotos.data);
 
   return (
     <Popover {...popoverProps}>
@@ -60,7 +159,7 @@ const UnsplashPopover = ({ triggerProps, popoverProps }: Props) => {
         <Button {...triggerProps} />
       </PopoverTrigger>
 
-      <PopoverContent rounded="xl">
+      <PopoverContent rounded="xl" w="min-content">
         <PopoverHeader border="0">
           <Text as="span" display="block" fontWeight="semibold" fontSize="xs">
             Photo Search
@@ -75,12 +174,60 @@ const UnsplashPopover = ({ triggerProps, popoverProps }: Props) => {
             Search Unsplash for photos
           </Text>
         </PopoverHeader>
+        <PopoverBody>
+          <form onSubmit={handleQuery}>
+            <Input
+              name="search"
+              placeholder="eg: food, cars"
+              autoComplete="off"
+            />
+          </form>
 
-        <form onSubmit={handleQuery}>
-          <Input name="search" placeholder="eg: food, cars" />
-        </form>
+          <Grid
+            templateColumns="repeat(4,min-content)"
+            rowGap="2"
+            columnGap="3"
+            mt="5"
+            position="relative"
+            overflow="hidden"
+            rounded="base"
+          >
+            {isLoadingImages &&
+              emptyArray.map((_, i) => (
+                <GridItem key={`${i}-unsplash-skeleton`}>
+                  <Skeleton h="50px" w="50px"></Skeleton>
+                </GridItem>
+              ))}
 
-        {/* Show unsplash images */}
+            {query &&
+              searchPhotos.isSuccess &&
+              searchPhotos.data.map((photo) => (
+                <GridItem key={photo.id}>
+                  <UnsplashImage
+                    smallUrl={photo.urls.thumb}
+                    bigUrl={photo.urls.small}
+                    alt={photo.alt_description || ""}
+                    onClickImage={onClickImage}
+                  />
+                </GridItem>
+              ))}
+
+            {!query &&
+              getPhotos.isSuccess &&
+              getPhotos.data.map((photo) => (
+                <GridItem key={photo.id}>
+                  <UnsplashImage
+                    smallUrl={photo.urls.thumb}
+                    bigUrl={photo.urls.small}
+                    alt={photo.alt_description || ""}
+                    onClickImage={onClickImage}
+                  />
+                </GridItem>
+              ))}
+
+            {isLoading && <LoadingOverlay />}
+          </Grid>
+        </PopoverBody>
       </PopoverContent>
     </Popover>
   );
