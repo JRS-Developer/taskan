@@ -46,7 +46,11 @@ const BoardPage: NextPage<Props> = ({ router }) => {
         </Menu>
       </Flex>
 
-      {isSuccess && <BoardColumns boardId={boardId} columns={data.lists} />}
+      {isSuccess && (
+        <Flex bg="gray.100" rounded="3xl" mt="7" p="6">
+          <BoardColumns boardId={boardId} columns={data.lists} />
+        </Flex>
+      )}
 
       <CardInfoModal />
     </Box>

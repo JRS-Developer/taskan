@@ -10,14 +10,13 @@ import {
   FormErrorMessage,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import { z } from "zod";
 
 type Props = {
   isLoading: boolean;
-  onCancel: () => any;
+  onCancel: () => void;
   onSubmit: SubmitHandler<FormData>;
   inputPlaceholder: string;
   label: string;
@@ -44,17 +43,12 @@ const BoardColumnForm = ({
     handleSubmit,
     formState: { errors },
     register,
-    setFocus,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
     },
   });
-
-  useEffect(() => {
-    setFocus("name");
-  }, [setFocus]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -66,6 +60,7 @@ const BoardColumnForm = ({
           <Input
             id="name"
             placeholder={inputPlaceholder}
+            autoFocus
             {...register("name")}
           />
           <FormErrorMessage>

@@ -51,38 +51,36 @@ const BoardColumns = ({ boardId, columns }: Props) => {
   }
 
   return (
-    <Flex bg="gray.100" rounded="3xl" mt="7" p="6">
-      <HStack spacing="8" align="flex-start">
-        {columns.map((column) => (
-          <BoardColumnItem key={column.id} column={column} />
-        ))}
-        <Box w="244px">
-          <Collapse in={isCreating} unmountOnExit>
-            {isCreating && (
-              <BoardColumnForm
-                isLoading={isLoading}
-                label="Add New Column"
-                addButtonText="Add Column"
-                onSubmit={handleCreateColumn}
-                inputPlaceholder="Insert column name..."
-                onCancel={setIsCreating.off}
-              />
-            )}
-          </Collapse>
-          {!isCreating && (
-            <Button
-              leftIcon={<HiPlus />}
-              colorScheme="blue"
-              variant="outline"
-              onClick={setIsCreating.on}
-              w="full"
-            >
-              Add another list
-            </Button>
+    <HStack spacing="8" align="flex-start">
+      {columns.map((column) => (
+        <BoardColumnItem key={column.id} column={column} />
+      ))}
+      <Box w="244px">
+        <Collapse in={isCreating} unmountOnExit>
+          {isCreating && (
+            <BoardColumnForm
+              isLoading={isLoading}
+              label="Add New Column"
+              addButtonText="Add Column"
+              onSubmit={handleCreateColumn}
+              inputPlaceholder="Insert column name..."
+              onCancel={setIsCreating.off}
+            />
           )}
-        </Box>
-      </HStack>
-    </Flex>
+        </Collapse>
+        {!isCreating && (
+          <Button
+            leftIcon={<HiPlus />}
+            colorScheme="blue"
+            variant="outline"
+            onClick={setIsCreating.on}
+            w="full"
+          >
+            Add another list
+          </Button>
+        )}
+      </Box>
+    </HStack>
   );
 };
 

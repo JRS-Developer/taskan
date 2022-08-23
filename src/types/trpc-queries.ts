@@ -7,3 +7,6 @@ export type BoardCardByIdT = BoardColumnByIdT["cards"][0];
 
 // Card types
 export type CardByIdT = inferQueryOutput<"cards.getOneById">;
+
+// Unsplash types
+export type UnsplashPhotoT = inferQueryOutput<"unsplash.getPhotos">[0];

@@ -74,7 +74,13 @@ export const cardsRouter = createProtectedRouter()
     input: z.object({
       id: z.string().uuid(),
       name: z.string().optional(),
-      cover: z.string().url().optional(),
+      cover: z
+        .object({
+          url: z.string().url(),
+          blur_hash: z.string().optional(),
+          description: z.string().optional(),
+        })
+        .optional(),
       description: z.string().optional(),
     }),
     async resolve({ input: { id, ...input } }) {
@@ -92,7 +98,12 @@ export const cardsRouter = createProtectedRouter()
         where: {
           id: id,
         },
-        data: input,
+        data: {
+          ...input,
+          cover: {
+            create: input.cover,
+          },
+        },
         include: CardInclude,
       });
 

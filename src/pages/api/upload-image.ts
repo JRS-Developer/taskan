@@ -57,9 +57,8 @@ const uploadImage = async (req: NextApiRequest, res: NextApiResponse) => {
     if (error) throw error;
 
     // get public image url
-    const { publicURL, error: errorPublicUrl } = await storage.getPublicUrl(
-      saveFilePath
-    );
+    const { publicURL, error: errorPublicUrl } =
+      storage.getPublicUrl(saveFilePath);
 
     if (errorPublicUrl) throw error;
 

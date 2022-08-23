@@ -1,3 +1,4 @@
+import { type UnsplashPhotoT } from "@/types/trpc-queries";
 import { useCardModalStore } from "@/store";
 import { CardByIdT } from "@/types/trpc-queries";
 import { trpc } from "@/utils/trpc";
@@ -31,10 +32,20 @@ const CardActions = ({ card }: { card: CardByIdT }) => {
     },
   });
 
-  const changeCover = (url: string) => {
+  const changeCover = (photo: UnsplashPhotoT) => {
+    const {
+      urls: { full },
+      blur_hash,
+      description,
+    } = photo;
+
     updateCardCover.mutate({
       id: card.id,
-      cover: url,
+      cover: {
+        description,
+        blur_hash,
+        url: full,
+      },
     });
   };
 
@@ -84,7 +95,7 @@ const CardModalBody = ({ card }: CardModalBodyProps) => {
             src={card.cover}
             layout="fill"
             alt={card.name}
-            objectFit="fill"
+            objectFit="cover"
           />
         </Box>
       )}

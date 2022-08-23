@@ -1,3 +1,4 @@
+import { type UnsplashPhotoT } from "@/types/trpc-queries";
 import { trpc } from "@/utils/trpc";
 import {
   Box,
@@ -22,7 +23,7 @@ import Image from "next/image";
 import { useMemo, useState, type SyntheticEvent } from "react";
 import { HiPlus } from "react-icons/hi";
 
-type OnClickImage = (url: string) => void;
+type OnClickImage = (photo: UnsplashPhotoT) => void;
 
 interface Props {
   triggerProps?: ButtonProps;
@@ -32,18 +33,11 @@ interface Props {
 }
 
 interface UnsplashImageProps {
-  alt: string;
-  smallUrl: string;
-  bigUrl: string;
+  photo: UnsplashPhotoT;
   onClickImage: OnClickImage;
 }
 
-const UnsplashImage = ({
-  smallUrl,
-  bigUrl,
-  alt,
-  onClickImage,
-}: UnsplashImageProps) => {
+const UnsplashImage = ({ photo, onClickImage }: UnsplashImageProps) => {
   return (
     <Box
       position="relative"
@@ -51,7 +45,7 @@ const UnsplashImage = ({
       h="50px"
       overflow="hidden"
       rounded="base"
-      onClick={() => onClickImage(bigUrl)}
+      onClick={() => onClickImage(photo)}
       _active={{
         opacity: "90%",
       }}
@@ -62,7 +56,12 @@ const UnsplashImage = ({
         },
       }}
     >
-      <Image src={smallUrl} alt={alt} layout="fill" objectFit="cover" />
+      <Image
+        src={photo.urls.thumb}
+        alt={photo.description || photo.alt_description || ""}
+        layout="fill"
+        objectFit="cover"
+      />
       <Flex
         justify="center"
         align="center"
@@ -203,12 +202,7 @@ const UnsplashPopover = ({
               searchPhotos.isSuccess &&
               searchPhotos.data.map((photo) => (
                 <GridItem key={photo.id}>
-                  <UnsplashImage
-                    smallUrl={photo.urls.thumb}
-                    bigUrl={photo.urls.small}
-                    alt={photo.alt_description || ""}
-                    onClickImage={onClickImage}
-                  />
+                  <UnsplashImage photo={photo} onClickImage={onClickImage} />
                 </GridItem>
               ))}
 
@@ -216,12 +210,7 @@ const UnsplashPopover = ({
               getPhotos.isSuccess &&
               getPhotos.data.map((photo) => (
                 <GridItem key={photo.id}>
-                  <UnsplashImage
-                    smallUrl={photo.urls.thumb}
-                    bigUrl={photo.urls.small}
-                    alt={photo.alt_description || ""}
-                    onClickImage={onClickImage}
-                  />
+                  <UnsplashImage photo={photo} onClickImage={onClickImage} />
                 </GridItem>
               ))}
 
