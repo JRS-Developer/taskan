@@ -64,6 +64,7 @@ export const boardsRouter = createProtectedRouter()
                       Label: true,
                     },
                   },
+                  cover: true,
                 },
               },
             },

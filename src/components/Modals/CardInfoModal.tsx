@@ -34,7 +34,7 @@ const CardActions = ({ card }: { card: CardByIdT }) => {
 
   const changeCover = (photo: UnsplashPhotoT) => {
     const {
-      urls: { full },
+      urls: { regular },
       blur_hash,
       description,
     } = photo;
@@ -42,9 +42,9 @@ const CardActions = ({ card }: { card: CardByIdT }) => {
     updateCardCover.mutate({
       id: card.id,
       cover: {
-        description,
-        blur_hash,
-        url: full,
+        description: description ?? undefined,
+        blur_hash: blur_hash ?? undefined,
+        url: regular,
       },
     });
   };
@@ -92,10 +92,12 @@ const CardModalBody = ({ card }: CardModalBodyProps) => {
           rounded="xl"
         >
           <Image
-            src={card.cover}
+            src={card.cover.url}
             layout="fill"
-            alt={card.name}
+            alt={card.cover?.description ?? card.name}
             objectFit="cover"
+            placeholder="blur"
+            blurDataURL={card?.cover.blur_hash ?? ""}
           />
         </Box>
       )}

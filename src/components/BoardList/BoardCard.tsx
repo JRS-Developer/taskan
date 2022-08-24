@@ -17,7 +17,7 @@ type Props = {
 };
 
 const BoardCard = ({ board }: Props) => {
-  const { title, id, cover, isPrivate, creator, creatorId, members } = board;
+  const { title, id, isPrivate, creator, creatorId, members } = board;
   const { data } = useSession();
 
   // members without the same user
@@ -45,7 +45,7 @@ const BoardCard = ({ board }: Props) => {
         position="relative"
       >
         <Image
-          src={cover ?? DefaultCover}
+          src={board?.cover?.url ?? DefaultCover}
           alt={title}
           objectFit="cover"
           layout="fill"

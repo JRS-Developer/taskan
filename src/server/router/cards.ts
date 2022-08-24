@@ -7,6 +7,7 @@ import { Prisma } from "@prisma/client";
 
 const CardInclude = Prisma.validator<Prisma.CardInclude>()({
   boardList: true,
+  cover: true,
 });
 
 const showCardNotFound = () =>

@@ -36,7 +36,14 @@ const ColumnCardItem = ({ card: { id, cover, name, labels } }: Props) => {
           rounded="xl"
           overflow="hidden"
         >
-          <Image src={cover} alt={name} layout="fill" objectFit="cover" />
+          <Image
+            src={cover.url}
+            alt={cover?.description ?? `${name} Cover`}
+            layout="fill"
+            objectFit="cover"
+            placeholder="blur"
+            blurDataURL={cover.blur_hash ?? ""}
+          />
         </Flex>
       )}
       <Text size="md">{name}</Text>
