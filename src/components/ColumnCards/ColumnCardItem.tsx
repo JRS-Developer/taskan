@@ -62,6 +62,9 @@ const ColumnCardItem = ({ card: { id, cover, name, labels } }: Props) => {
               aria-label="Add member"
               colorScheme="blue"
               size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             />
           </Tooltip>
         </Flex>
